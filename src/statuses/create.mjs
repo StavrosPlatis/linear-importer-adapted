@@ -13,6 +13,7 @@ const UNSCHEDULED = "pivotal - unscheduled";
 const FINISHED = "pivotal - finished";
 const PLANNED = "pivotal - planned";
 const STARTED = "pivotal - started";
+const DELIVERED = "pivotal - delivered"; // Added 
 
 const STATUSES_TO_CREATE = [
   { name: UNSCHEDULED, color: "#6C757D", type: BACKLOG_TYPE },
@@ -20,6 +21,7 @@ const STATUSES_TO_CREATE = [
   { name: STARTED, color: "#f3f3d1", type: STARTED_TYPE },
   { name: ACCEPTED, color: "#629200", type: COMPLETED_TYPE },
   { name: FINISHED, color: "#17A2B8", type: COMPLETED_TYPE },
+  { name: DELIVERED, color: "#B8860B", type: COMPLETED_TYPE }, // Added
 ];
 
 async function createStatusForTeam({ teamId }) {

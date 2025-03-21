@@ -30,7 +30,7 @@ async function buildIssueParams({
   const estimate = issue.estimate
     ? roundEstimate(issue.estimate, scale)
     : undefined;
-  const dueDate = formatDate(issue.dueDate);
+  //const dueDate = formatDate(issue.dueDate);
   const createdAt = formatDate(issue.createdAt);
   const { assigneeId, subscriberIds } = await userDistributor(issue, team.name);
   const parentId = extractParentId(issue, releaseIssues);
@@ -47,7 +47,7 @@ async function buildIssueParams({
     subscriberIds,
     parentId,
     stateId,
-    dueDate,
+    //dueDate,
     createdAt,
   };
 

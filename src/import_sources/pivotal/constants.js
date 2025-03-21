@@ -11,6 +11,8 @@ const FINISHED = "finished";
 const PLANNED = "planned";
 const STARTED = "started";
 const UNSTARTED = "unstarted";
+const DELIVERED = "delivered";
+
 
 const PREFIX = "pivotal";
 
@@ -49,6 +51,13 @@ export const STATUS_OPTIONS = [
     value: FINISHED,
     name: `${PREFIX} - ${FINISHED}`,
     color: "#17A2B8",
+    type: COMPLETED_TYPE,
+  },
+  // Added Delivered
+  {
+    value: DELIVERED,
+    name: `${PREFIX} - ${DELIVERED}`,
+    color: "#B8860B",
     type: COMPLETED_TYPE,
   },
 ];
