@@ -4,6 +4,7 @@ export function buildFormattedIssue(row) {
   const title = buildTitle(row);
   const dueDate = buildDueDate(row);
   const ownedBy = joinMultipleColumns(row["Owned By"]);
+  const taskStatusComment = buildTaskStatusComment(row);
 
   const params = {
     isRelease: row["Type"] == "release",
@@ -22,7 +23,7 @@ export function buildFormattedIssue(row) {
     requestedBy: row["Requested By"],
     ownedBy,
     estimate: row["Estimate"],
-    comments: [rawPivotalTrackerDataComment, ...(comments || [])],
+    comments: [taskStatusComment, rawPivotalTrackerDataComment,  ...(comments || [])],
   };
 
   return params;
@@ -61,7 +62,30 @@ function buildRawPivotalTrackerDataComment(row) {
   return [...header, ...dataRows].join("\n");
 }
 
+function buildTaskStatusComment(row) {
+  const header = ["#### Task and Task Status Data:", ""];
+
+  const dataRows = Object.entries(row)
+    .filter(([key]) => ["Task", "Task Status"].includes(key))
+    .map(([key, value]) => {
+      const formattedValue = Array.isArray(value)
+        ? joinMultipleColumnsWithNewLine(value)
+        : value;
+      return `#### ${key}: \n${formattedValue}`;
+    });
+
+  return [...header, ...dataRows].join("\n");
+}
+
 function joinMultipleColumns(columns) {
   if (!Array.isArray(columns)) return "";
   return columns.filter((comment) => comment !== "");
+}
+
+function joinMultipleColumnsWithNewLine(columns) {
+  if (!Array.isArray(columns)) return "";
+  return columns
+    .filter((comment) => comment !== "")
+    .map((comment) => `- ${comment}\n`)
+    .join("");
 }
