@@ -23,9 +23,13 @@ export function buildFormattedIssue(row) {
     requestedBy: row["Requested By"],
     ownedBy,
     estimate: row["Estimate"],
-    comments: [taskStatusComment, rawPivotalTrackerDataComment,  ...(comments || [])],
+    comments: [
+      taskStatusComment,
+      rawPivotalTrackerDataComment,
+      ...(comments || []),
+    ].filter(Boolean),
   };
-
+  console.log(`params: ${JSON.stringify(params)}`);
   return params;
 }
 
@@ -63,29 +67,59 @@ function buildRawPivotalTrackerDataComment(row) {
 }
 
 function buildTaskStatusComment(row) {
-  const header = ["#### Task and Task Status Data:", ""];
+  const header = ["#### Tasks:", ""];
 
-  const dataRows = Object.entries(row)
-    .filter(([key]) => ["Task", "Task Status"].includes(key))
-    .map(([key, value]) => {
-      const formattedValue = Array.isArray(value)
-        ? joinMultipleColumnsWithNewLine(value)
-        : value;
-      return `#### ${key}: \n${formattedValue}`;
-    });
+  // Create arrays for "Task" and "Task Status" values
+  const taskKeys = Object.keys(row).filter(
+    (key) => key.startsWith("Task") && !key.includes("Status"),
+  );
+  const statusKeys = Object.keys(row).filter((key) =>
+    key.startsWith("Task Status"),
+  );
 
-  return [...header, ...dataRows].join("\n");
+  const tasks = taskKeys.flatMap((key) => splitAndTrim(row[key]));
+  console.log(`tasks: ${JSON.stringify(tasks)}`);
+  const statuses = statusKeys.flatMap((key) => splitAndTrim(row[key]));
+  console.log(`statuses: ${JSON.stringify(statuses)}`);
+
+  const taskStatusLines = [];
+
+  // Match tasks and statuses
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+    const status = statuses[i];
+    console.log(`task: ${task}`);
+    console.log(`status: ${status}`);
+
+    if (task && status) {
+      const isDone = status.trim().toLowerCase() === "completed";
+      taskStatusLines.push(`- [ ] ${task}${isDone ? " (DONE)" : ""}`);
+    }
+  }
+
+  if (taskStatusLines.length > 0) {
+    return [...header, ...taskStatusLines].join("\n");
+  } else {
+    return null; // no comment if no tasks
+  }
+}
+
+function splitAndTrim(value) {
+  if (Array.isArray(value)) {
+    return value.flatMap((v) =>
+      typeof v === "string" ? v.split(",").map((s) => s.trim()) : [],
+    );
+  } else if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((v) => v.trim())
+      .filter((v) => v !== "");
+  } else {
+    return [];
+  }
 }
 
 function joinMultipleColumns(columns) {
   if (!Array.isArray(columns)) return "";
   return columns.filter((comment) => comment !== "");
-}
-
-function joinMultipleColumnsWithNewLine(columns) {
-  if (!Array.isArray(columns)) return "";
-  return columns
-    .filter((comment) => comment !== "")
-    .map((comment) => `- ${comment}\n`)
-    .join("");
 }
