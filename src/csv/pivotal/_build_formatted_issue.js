@@ -5,6 +5,7 @@ export function buildFormattedIssue(row) {
   const dueDate = buildDueDate(row);
   const ownedBy = joinMultipleColumns(row["Owned By"]);
   const taskStatusComment = buildTaskStatusComment(row);
+  const blockers = buildBlockers(row);
 
   const params = {
     isRelease: row["Type"] == "release",
@@ -28,6 +29,7 @@ export function buildFormattedIssue(row) {
       rawPivotalTrackerDataComment,
       ...(comments || []),
     ].filter(Boolean),
+    blockers,
   };
   console.log(`params: ${JSON.stringify(params)}`);
   return params;
@@ -88,10 +90,10 @@ function buildTaskStatusComment(row) {
   for (let i = 0; i < tasks.length; i++) {
     const task = tasks[i];
     const status = statuses[i];
-    console.log(`task: ${task}`);
-    console.log(`status: ${status}`);
 
     if (task && status) {
+      console.log(`task: ${task}`);
+      console.log(`status: ${status}`);
       const isDone = status.trim().toLowerCase() === "completed";
       taskStatusLines.push(`- [ ] ${task}${isDone ? " (DONE)" : ""}`);
     }
@@ -102,6 +104,43 @@ function buildTaskStatusComment(row) {
   } else {
     return null; // no comment if no tasks
   }
+}
+
+function buildBlockers(row) {
+  if (row["Blocker"]) {
+    const blockerKeys = Object.keys(row).filter(
+      (key) => key.startsWith("Blocker") && !key.includes("Status"),
+    );
+    const statusKeys = Object.keys(row).filter((key) =>
+      key.startsWith("Blocker Status"),
+    );
+
+    const allBlockers = blockerKeys.flatMap((key) => splitAndTrim(row[key]));
+    console.log(`All blockers: ${JSON.stringify(allBlockers)}`);
+    const allStatuses = statusKeys.flatMap((key) => splitAndTrim(row[key]));
+    console.log(`All blocker statuses: ${JSON.stringify(allStatuses)}`);
+
+    const rowBlockersWithStatuses = allBlockers
+      .map((blocker, index) => {
+        const idRegex = /\b\d{9}\b/; // Matches exactly 9 digits
+        const idMatch = idRegex.exec(blocker);
+        return {
+          blocker,
+          status: allStatuses[index] || "unknown",
+          id: idMatch ? idMatch[0] : null,
+        };
+      })
+      .filter(
+        (item) => item.status.toLowerCase() !== "resolved" && item.id !== null,
+      );
+
+    // Extract only the IDs
+    const ids = rowBlockersWithStatuses.map((item) => item.id);
+
+    console.log(`Filtered blocker IDs: ${JSON.stringify(ids)}`);
+    return ids;
+  }
+  return [];
 }
 
 function splitAndTrim(value) {
