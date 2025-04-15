@@ -1,14 +1,6 @@
 import linearClient from "../../config/client.mjs";
 import { detailedLogger } from "../../logger/logger_instance.js";
 import { REQUEST_DELAY_MS } from "../../config/config.js";
-import pkg from "@linear/sdk"; // Import the entire module
-const { IssueRelationType } = pkg; 
-
-
-// createdIssues has the following structure:
-// { newIssues: [], pivotalIds: [] };
-
-// newIssues is of type IssuePayload
 
 async function create({ pivotalStories, createdIssues }) {
   for (const issue of pivotalStories) {
@@ -32,21 +24,20 @@ async function create({ pivotalStories, createdIssues }) {
 
             if (blockerIssue && relatedIssue) {
               // Access the issue IDs only if both are defined
-              const issueId = blockerIssue.identifier;
-              const relatedIssueId = relatedIssue.identifier;
+              const issueId = blockerIssue.id;
+              const relatedIssueId = relatedIssue.id;
+              const issueIdentifier = blockerIssue.identifier;
+              const relatedIssueIdentifier = relatedIssue.identifier;
 
               console.log(
-                `Creating blocker relation between ${issueId} and ${relatedIssueId}\nPivotal IDs: ${blockerId} and ${issue.id}`,
+                `(${issue.title}) Creating blocker relation between ${issueIdentifier} and ${relatedIssueIdentifier}\nPivotal IDs: ${blockerId} and ${issue.id}\n`,
               );
-              console.log("IssueRelationType:", IssueRelationType);
 
               // Create the relation between the two issues
               await linearClient.createIssueRelation({
-                input: {
-                  issueId: issueId,
-                  relatedIssueId: relatedIssueId,
-                  type: IssueRelationType.Blocks,
-                },
+                issueId: issueId,
+                relatedIssueId: relatedIssueId,
+                type: "blocks",
               });
             } else {
               console.log(
