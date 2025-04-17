@@ -29,16 +29,22 @@ async function create({ pivotalStories, createdIssues }) {
               const issueIdentifier = blockerIssue.identifier;
               const relatedIssueIdentifier = relatedIssue.identifier;
 
-              console.log(
-                `(${issue.title}) Creating blocker relation between ${issueIdentifier} and ${relatedIssueIdentifier}\nPivotal IDs: ${blockerId} and ${issue.id}\n`,
-              );
+              if (issueId !== relatedIssueId) {
+                console.log(
+                  `(${issue.title}) Creating blocker relation between ${issueIdentifier} and ${relatedIssueIdentifier}\nPivotal IDs: ${blockerId} and ${issue.id}\n`,
+                );
 
-              // Create the relation between the two issues
-              await linearClient.createIssueRelation({
-                issueId: issueId,
-                relatedIssueId: relatedIssueId,
-                type: "blocks",
-              });
+                // Create the relation between the two issues
+                await linearClient.createIssueRelation({
+                  issueId: issueId,
+                  relatedIssueId: relatedIssueId,
+                  type: "blocks",
+                });
+              } else {
+                console.log(
+                  `Blocker and related issue are the same. Blocker ID: ${blockerId}, Issue ID: ${issue.id}`,
+                );
+              }
             } else {
               console.log(
                 `One of the issues is undefined. Blocker ID: ${blockerId}, Issue ID: ${issue?.id || "undefined"}`,
