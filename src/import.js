@@ -16,6 +16,7 @@ import createUserMapping from "./users/create_user_mapping.js";
 import { PIVOTAL_DEFAULT_LABELS } from "./labels/pivotal/_constants.js";
 import selectDirectory from "./prompts/select_csv_directory.js";
 import createIssues from "./issues/create.js";
+import createBlockers from "./blockers/create.js";
 
 //=============================================================================
 // Select Import Source
@@ -107,7 +108,7 @@ if (shouldImportLabels) {
 // Create Release Issues
 //=============================================================================
 // Create Release Issues first so that we can assign sub-issues
-const releaseIssues = extractedPivotalData.formattedIssuePayload.filter(
+/* const releaseIssues = extractedPivotalData.formattedIssuePayload.filter(
   (issue) => issue.isRelease,
 );
 await createIssues({
@@ -116,7 +117,7 @@ await createIssues({
   options,
   importSource,
   directory,
-});
+}); */
 
 //=============================================================================
 // Create Issues
@@ -126,12 +127,17 @@ await createIssues({
 const nonReleaseIssues = extractedPivotalData.formattedIssuePayload.filter(
   (issue) => !issue.isRelease,
 );
-await createIssues({
+const createdIssues = await createIssues({
   team,
   issuesPayload: nonReleaseIssues,
   options,
   importSource,
   directory,
+});
+
+await createBlockers({
+  pivotalStories: nonReleaseIssues,
+  createdIssues,
 });
 
 await detailedLogger.importantSuccess("Import complete!");

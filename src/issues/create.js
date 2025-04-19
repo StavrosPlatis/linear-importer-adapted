@@ -29,6 +29,10 @@ async function create({
       labels: { some: { name: { eq: RELEASE_LABEL_NAME } } },
     },
   });
+  const result = {
+    newIssues: [],
+    pivotalIds: [],
+  };
 
   for (const [index, issue] of issuesPayload.entries()) {
     try {
@@ -46,6 +50,9 @@ async function create({
 
       // Create Issue
       const newIssue = await linearClient.createIssue(issueParams);
+      // Add to created issues
+      result.newIssues.push(newIssue);
+      result.pivotalIds.push(issue.id);
 
       // Write successful import to log
       await logSuccessfulImport({
@@ -69,6 +76,7 @@ async function create({
       process.exit(0);
     }
   }
+  return result;
 }
 
 export default create;
